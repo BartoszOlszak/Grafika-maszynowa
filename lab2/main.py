@@ -1,0 +1,70 @@
+from PIL import Image
+import numpy as np
+
+# zadanie 1
+
+inicjaly = Image.open("bs.bmp")  # wczytywanie obrazu
+
+print("tryb", inicjaly.mode)
+print("format", inicjaly.format)
+print("rozmiar", inicjaly.size)
+
+t_inicjaly = np.asarray(inicjaly)
+print("typ danych tablicy", t_inicjaly.dtype)  # typ danych przechowywanych w tablicy
+print("rozmiar tablicy", t_inicjaly.shape)  # rozmiar tablicy - warto porównac z wymiarami obrazka
+
+def rysuj_paski_w_obrazie(obraz, grub): # rysuje pionowy pas grubości grub po lewej stronie oraz po prawej stronie
+    tab_obraz = np.asarray(obraz).astype(np.uint8) # wczytanie tablicy obrazu i zamiana na int
+    h, w = tab_obraz.shape
+    for i in range(h):
+        for j in range(grub):
+            tab_obraz[i][j]=0
+        for j in range(w-grub,w):
+            tab_obraz[i][j]=0
+    return tab_obraz
+
+
+def rysuj_ramke_w_obrazie(obraz, grub):
+    tab_obraz = rysuj_paski_w_obrazie(obraz, grub) # funkcja uzywa lekko zmodyfikowanej funkcji rysuj_paski_w_obrazie
+    h, w = tab_obraz.shape
+    for i in range(w):
+        for j in range(grub):
+            tab_obraz[j][i]=0
+    for i in range(w):
+        for j in range(h-grub,h):
+            tab_obraz[j][i] = 0
+    tab = tab_obraz.astype(bool)
+    return Image.fromarray(tab)
+
+obraz1 = rysuj_ramke_w_obrazie(inicjaly, 10)
+obraz1.show()
+
+# zadanie 2.1
+
+def rysuj_ramke(w, h, grub): # grub grubość ramki w pikselach
+    t = (h, w)  # rozmiar tablicy
+    tab = np.ones(t, dtype=np.uint8)  # deklaracja tablicy wypełnionej zerami - czarna
+    tab[grub:h - grub, grub:w - grub] = 0  # skrócona wersja ustawienia wartości dla prostokatnego fragmentu tablicy [zakresy wysokości, zakresy szerokości] tablicy
+    tab1 = tab.astype(np.bool_)
+    return Image.fromarray(tab1)
+
+obraz21 = rysuj_ramke(200, 100, 10)
+
+# zadanie 2.2
+
+def rysuj_pasy_pionowe(w, h, grub):  # w, h   -  rozmiar obrazu
+    t = (h, w)  # rozmiar tablicy
+    tab = np.ones(t, dtype=np.uint8)
+    # jaki bedzie efekt, gdy np.ones zamienimy na np.zeros?
+    ile =  int(w/grub)  # liczba pasów  o grubości grub
+    for k in range(ile):  # uwaga k = 0,1,2..   bez ile
+        for g in range(grub):
+            j = k * grub + g  # i - indeks wiersza, j - indeks kolumny
+            for i in range(h):
+                tab[i, j] = k % 2  # reszta z dzielenia przez dwa
+    tab = tab * 255  # alternatywny sposób uzyskania tablicy obrazu czarnobiałego ale w trybie odcieni szarości
+    return Image.fromarray(tab)
+
+obraz22 = rysuj_pasy_pionowe(130, 100, 10)
+obraz22.show()
+
