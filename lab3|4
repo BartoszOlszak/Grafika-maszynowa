@@ -1,0 +1,189 @@
+from PIL import Image
+import numpy as np
+
+
+# zadanie 1
+def rysuj_ramki_szare(w, h, grub, zmiana_koloru):
+    # rysuje ramki ze zmianą odcienia szarości
+    t = (h, w)
+    tab = np.zeros(t, dtype=np.uint8)
+    x = min(w, h) // (2 * grub)
+
+    for i in range(x + 1):
+        y = int((i * zmiana_koloru) % 256)
+        tab[i * grub:h - i * grub, i * grub:w - i * grub] = y
+    return Image.fromarray(tab, 'L')
+
+
+obraz1 = rysuj_ramki_szare(200, 100, 10, 40)
+obraz1.show()
+
+
+def rysuj_pasy_pionowe_szare(w, h, grub, zmiana_koloru):
+    # rysuje pasy pionowe ze zmianą odcienia szarości
+    t = (h, w)
+    tab = np.ones(t, dtype=np.uint8)
+    ile = int(w / grub)
+    for k in range(ile):
+        for g in range(grub):
+            j = k * grub + g
+            for i in range(h):
+                tab[i, j] = (k + zmiana_koloru) % 256
+    return Image.fromarray(tab, 'L')
+
+
+obraz2 = rysuj_pasy_pionowe_szare(246, 100, 1, 10)
+obraz2.show()
+
+
+# zadanie 2
+
+
+def negatyw(obraz):
+    tab = np.asarray(obraz)
+    tab_neg = tab.copy()
+    if obraz.mode == '1':
+        tab_neg = ~tab
+    if obraz.mode == 'L':
+        tab_neg = 255 - tab
+    if obraz.mode == 'RGB':
+        tab_neg = 255 - tab
+    return Image.fromarray(tab_neg)
+
+
+# zadanie 2a
+
+gwiazdka = Image.open("gwiazdka.bmp")
+gwiazdka.show()
+obraz_neg1 = negatyw(gwiazdka)
+obraz_neg1.show()
+
+
+# zadanie 2b
+
+
+def rysuj_ramki_kolorowe(w, kolor, zmiana_koloru_r, zmiana_koloru_g, zmiana_koloru_b):
+    t = (w, w, 3)
+    tab = np.zeros(t, dtype=np.uint8)
+    kolor_r = kolor[0]
+    kolor_g = kolor[1]
+    kolor_b = kolor[2]
+    z = w
+    for k in range(int(w / 2)):
+        for i in range(k, z - k):
+            for j in range(k, z - k):
+                tab[i, j] = [kolor_r, kolor_g, kolor_b]
+        kolor_r = (kolor_r - zmiana_koloru_r) % 256
+        kolor_g = (kolor_g - zmiana_koloru_g) % 256
+        kolor_b = (kolor_b - zmiana_koloru_b) % 256
+    return Image.fromarray(tab)
+
+
+obraz3 = rysuj_ramki_kolorowe(200, [0, 120, 220], 7, 6, -7)
+obraz_neg2 = negatyw(obraz3)
+obraz3.show()
+obraz_neg2.show()
+
+
+# zadanie 2c
+
+
+def rysuj_po_skosie_szare(h,w, a, b):  # formuła zmiany wartości elemntów tablicy a*i + b*j
+    t = (h, w) # rysuje kwadratowy obraz
+    tab = np.zeros(t, dtype=np.uint8)
+    for i in range(h):
+        for j in range(w):
+            tab[i, j] = (a*i + b*j) % 256
+    return Image.fromarray(tab)
+
+
+obraz4 = rysuj_po_skosie_szare(100, 300, 7, 6)
+obraz_neg3 = negatyw(obraz4)
+obraz4.show()
+obraz_neg3.show()
+
+
+# zadanie 3a
+
+
+def koloruj_w_paski(obraz, grub, kolor, zmiana_koloru): # koloruje w paski z określoną zmianą
+    tab = np.asarray(obraz).astype(np.uint8)
+    h, w = tab.shape
+    t = (h, w, 3)
+    nowy = np.ones(t, dtype=np.uint8) * 255
+    for i in range(h):
+        n = i//grub
+        r = max(0, min(255, int(kolor[0] + n * zmiana_koloru[0])))
+        g = max(0, min(255, int(kolor[1] + n * zmiana_koloru[1])))
+        b = max(0, min(255, int(kolor[2] + n * zmiana_koloru[2])))
+        kolory = (r,g,b)
+        for j in range(w):
+            if tab[i, j] == 0:
+                nowy[i, j] = kolory
+    return Image.fromarray(nowy, 'RGB')
+
+
+inicjaly = Image.open("inicjaly.bmp")
+obraz5 = koloruj_w_paski(inicjaly, 10, [50, 120, 40], [40, 120, 120])
+obraz5.show()
+
+
+
+
+# zadanie 5
+
+r = rysuj_pasy_pionowe_szare(300, 200, 10, 15)
+g = rysuj_pasy_pionowe_szare(300, 200, 18, 15)
+b = rysuj_pasy_pionowe_szare(300, 200, 26, 15)
+
+
+razem = np.zeros((200, 300, 3), dtype=np.uint8)
+razem[:, :, 0] = r
+razem[:, :, 1] = g
+razem[:, :, 2] = b
+obraz6 = Image.fromarray(razem, 'RGB')
+obraz6.show()
+
+
+# zazdanie 6
+
+
+a = rysuj_po_skosie_szare(200, 300, 7, 6)
+a_tab = np.asarray(a)
+# Rozszerzenie wymiaru tablicy a do (100, 100, 1)
+a_ext = np.expand_dims(a_tab, axis=-1)
+
+# Połączenie wzdłuż ostatniego wymiaru
+combined = np.concatenate((obraz6, a_ext), axis=-1)
+obraz7 = Image.fromarray(combined)
+obraz7.show()
+
+
+# zadanie 7
+
+
+def rgb_to_cmyk(rgb_array):
+    rgb = rgb_array.astype(float) / 255
+    r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+
+    k = 1 - np.max(rgb, axis=2)
+
+    c = (1 - r - k) / (1 - k + 1e-8)
+    m = (1 - g - k) / (1 - k + 1e-8)
+    y = (1 - b - k) / (1 - k + 1e-8)
+
+    c[np.isnan(c)] = 0
+    m[np.isnan(m)] = 0
+    y[np.isnan(y)] = 0
+
+    cmyk = np.stack((c, m, y, k), axis=2) * 255
+    return cmyk.astype(np.uint8)
+
+
+t_rgb =  rysuj_ramki_kolorowe(100,20,13,4, 7)
+t_cmyk = rgb_to_cmyk(t_rgb)
+
+
+image_cmyk = Image.fromarray(t_cmyk, mode="CMYK")
+
+
