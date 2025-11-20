@@ -1,0 +1,62 @@
+from PIL import Image
+import numpy as np
+
+# nie zapisalem obrazu z poprzednich zajec wiec zamienic obraz obraz, w zadaniu 3 xyz wywalic
+
+def negatyw(obraz):
+    tab = np.asarray(obraz)
+    tab_neg = tab.copy()
+    if obraz.mode == '1':
+        tab_neg = ~tab
+    if obraz.mode == 'L':
+        tab_neg = 255 - tab
+    if obraz.mode == 'RGB':
+        tab_neg = 255 - tab
+    return Image.fromarray(tab_neg)
+
+# zadanie 1
+
+obraz = Image.open('jesien.jpg')
+inicjaly = Image.open('Inicjaly.bmp')
+
+# zadanie 2
+
+def wstaw_inicjaly(obraz_bazowy, obraz_wstawiany, m, n, kolor):
+    bazowy = obraz_bazowy.copy()
+    wstawiany = obraz_wstawiany.copy()
+    h_b, w_b = bazowy.size
+    h_w, w_w = wstawiany.size
+    h_k = min(h_w, h_b - n)
+    w_k = min(w_w, w_b - m)
+
+    for i in range(h_k):
+        for j in range(w_k):
+            if wstawiany.getpixel((i,j)) == 0:
+                bazowy.putpixel((n+i, m+j), kolor)
+
+    return bazowy
+
+
+obraz1 = wstaw_inicjaly(obraz, inicjaly, 490,880, (255,0,0)) # to potem dostosowac
+#obraz1.show() jeszcze zapisac
+
+# zadanie 2b
+
+def wstaw_inicjaly_maska(obraz, inicjaly, m, n):
+    bazowy = obraz.copy()
+    wstawiany = inicjaly.copy()
+    h_b, w_b = bazowy.size
+    h_w, w_w = wstawiany.size
+    h_k = min(h_w, h_b - n)
+    w_k = min(w_w, w_b - m)
+
+    for i in range(h_k):
+        for j in range(w_k):
+            if wstawiany.getpixel((i, j)) == 0:
+                n = bazowy.getpixel((n + i, m + j))
+                bazowy.putpixel((n + i, m + j), (255 - n[0], 255 - n[1], 255 - n[2]))
+
+    return bazowy
+
+obraz2 = wstaw_inicjaly_maska(obraz, inicjaly, 240,480) # to potem dostosowac
+obraz2.show()
